@@ -12,9 +12,14 @@ function divElementHtmlTekst(sporocilo) {
   return $('<div></div>').html('<i>' + sporocilo + '</i>');
 }
 
+function divElementHtmlVideo(videotag) {
+  return $('<div></div>').html('<iframe src="https://www.youtube.com/embed/' + videotag + '" allowfullscreen></iframe>');
+}
+
 function procesirajVnosUporabnika(klepetApp, socket) {
   var sporocilo = $('#poslji-sporocilo').val();
   sporocilo = dodajSmeske(sporocilo);
+  var videi = vrniVidee(sporocilo);
   var sistemskoSporocilo;
 
   if (sporocilo.charAt(0) == '/') {
@@ -26,9 +31,11 @@ function procesirajVnosUporabnika(klepetApp, socket) {
     sporocilo = filtirirajVulgarneBesede(sporocilo);
     klepetApp.posljiSporocilo(trenutniKanal, sporocilo);
     $('#sporocila').append(divElementEnostavniTekst(sporocilo));
-    $('#sporocila').scrollTop($('#sporocila').prop('scrollHeight'));
   }
-
+  for(var i = 0; i < videi.length; i++){
+    $('#sporocila').append(divElementHtmlVideo(videi[i]));
+  }
+  $('#sporocila').scrollTop($('#sporocila').prop('scrollHeight'));
   $('#poslji-sporocilo').val('');
 }
 
@@ -76,6 +83,11 @@ $(document).ready(function() {
   socket.on('sporocilo', function (sporocilo) {
     var novElement = divElementEnostavniTekst(sporocilo.besedilo);
     $('#sporocila').append(novElement);
+    var videi = vrniVidee(sporocilo.besedilo);
+    for(var i = 0; i < videi.length; i++){
+      $('#sporocila').append(divElementHtmlVideo(videi[i]));
+    }
+    $('#sporocila').scrollTop($('#sporocila').prop('scrollHeight'));
   });
   
   socket.on('kanali', function(kanali) {
@@ -130,4 +142,23 @@ function dodajSmeske(vhodnoBesedilo) {
       preslikovalnaTabela[smesko] + "' />");
   }
   return vhodnoBesedilo;
+}
+
+function vrniVidee(besedilo){
+  var videi = [];
+  var stevec = 0;
+  for(var i = 0; i < besedilo.length - 10; i++){
+    if(besedilo.substring(i).startsWith("https://www.youtube.com/watch?v=")){
+      var video = "";
+      for(var j = i + "https://www.youtube.com/watch?v=".length; j < besedilo.length; j++){
+        if(besedilo.charAt(j)==' ')break;
+        video += besedilo.charAt(j);
+      }
+      if(video.length > 0){
+        videi[stevec] = video;
+        stevec++;
+      }
+    }
+  }
+  return videi;
 }
