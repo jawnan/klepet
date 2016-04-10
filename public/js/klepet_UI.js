@@ -106,6 +106,14 @@ $(document).ready(function() {
     $('#sporocila').scrollTop($('#sporocila').prop('scrollHeight'));
   });
   
+  socket.on('dregljaj', function (){
+    $('#vsebina').jrumble();
+    $('#vsebina').trigger('startRumble');
+    setTimeout(function(){
+      $('#vsebina').trigger('stopRumble');
+    }, 1500);
+  })
+  
   socket.on('kanali', function(kanali) {
     $('#seznam-kanalov').empty();
 
