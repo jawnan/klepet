@@ -12,14 +12,21 @@ function divElementHtmlTekst(sporocilo) {
   return $('<div></div>').html('<i>' + sporocilo + '</i>');
 }
 
+
 function divElementHtmlSlika(slika) {
   return $('<div></div>').html('<img style="padding-left:20px" width="200px" src="' + slika + '"/>');
+}
+
+function divElementHtmlVideo(videotag) {
+  return $('<div></div>').html('<iframe src="https://www.youtube.com/embed/' + videotag + '" allowfullscreen></iframe>');
+
 }
 
 function procesirajVnosUporabnika(klepetApp, socket) {
   var sporocilo = $('#poslji-sporocilo').val();
   var slike = vrniSlike(sporocilo);
   sporocilo = dodajSmeske(sporocilo);
+  var videi = vrniVidee(sporocilo);
   var sistemskoSporocilo;
 
   if (sporocilo.charAt(0) == '/') {
@@ -36,8 +43,10 @@ function procesirajVnosUporabnika(klepetApp, socket) {
   for(var i = 0; slike[i]; i++){
     $('#sporocila').append(divElementHtmlSlika(slike[i]));
   }
+  for(var i = 0; i < videi.length; i++){
+    $('#sporocila').append(divElementHtmlVideo(videi[i]));
+  }
   $('#sporocila').scrollTop($('#sporocila').prop('scrollHeight'));
-
   $('#poslji-sporocilo').val('');
 }
 
@@ -85,9 +94,14 @@ $(document).ready(function() {
   socket.on('sporocilo', function (sporocilo) {
     var novElement = divElementEnostavniTekst(sporocilo.besedilo);
     $('#sporocila').append(novElement);
+    
     var slike = vrniSlike(sporocilo.besedilo);
-    for(var i = 0; slike[i]; i++){
+    for(var i = 0; slike[i]; i++) {
       $('#sporocila').append(divElementHtmlSlika(slike[i]));
+    }
+    var videi = vrniVidee(sporocilo.besedilo);
+    for(var i = 0; i < videi.length; i++){
+      $('#sporocila').append(divElementHtmlVideo(videi[i]));
     }
     $('#sporocila').scrollTop($('#sporocila').prop('scrollHeight'));
   });
@@ -151,6 +165,7 @@ function dodajSmeske(vhodnoBesedilo) {
   return vhodnoBesedilo;
 }
 
+
 function vrniSlike(besedilo){
   var rezultat = [];
   var count = 0;
@@ -172,3 +187,23 @@ function vrniSlike(besedilo){
   }
   return rezultat;
 }
+
+function vrniVidee(besedilo){
+  var videi = [];
+  var stevec = 0;
+  for(var i = 0; i < besedilo.length - 10; i++){
+    if(besedilo.substring(i).startsWith("https://www.youtube.com/watch?v=")){
+      var video = "";
+      for(var j = i + "https://www.youtube.com/watch?v=".length; j < besedilo.length; j++){
+        if(besedilo.charAt(j)==' ')break;
+        video += besedilo.charAt(j);
+      }
+      if(video.length > 0){
+        videi[stevec] = video;
+        stevec++;
+      }
+    }
+  }
+  return videi;
+}
+
